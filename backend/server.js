@@ -1,21 +1,41 @@
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
 require("dotenv").config();
+
+const connectDB = require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
 const habitRoutes = require("./routes/habitRoutes");
 
+const {
+  notFound,
+  errorHandler,
+} = require("./middleware/errorMiddleware");
+
+
+// ==============================
+// Connect MongoDB
+// ==============================
+
+connectDB();
+
+
+// ==============================
+// Create Express app
+// ==============================
+
 const app = express();
 
 
-// ==========================================
-// CORS
-// ==========================================
+// ==============================
+// Middleware
+// ==============================
 
 app.use(
   cors({
     origin: [
-      "http://localhost:5174",
+      "http://localhost:5175",
       "https://coven-app-final-frontend.onrender.com",
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -24,48 +44,44 @@ app.use(
   })
 );
 
-app.options("*", cors());
-
-
-// ==========================================
-// JSON
-// ==========================================
-
 app.use(express.json());
 
 
-// ==========================================
-// ROUTES
-// ==========================================
+// ==============================
+// Health Check
+// ==============================
 
 app.get("/", (req, res) => {
-  res.json({
-    message: "Coven backend is running",
+  res.status(200).json({
+    message: "Coven API is running.",
   });
 });
 
+
+// ==============================
+// Routes
+// ==============================
+
 app.use("/api/auth", authRoutes);
+
 app.use("/api/habits", habitRoutes);
 
 
-// ==========================================
-// MONGODB ATLAS
-// ==========================================
+// ==============================
+// Error Handling
+// ==============================
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB Atlas connected successfully");
+app.use(notFound);
 
-    const PORT = process.env.PORT || 5000;
+app.use(errorHandler);
 
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Coven backend running on port ${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error("MongoDB connection failed:");
-    console.error(error.message);
 
-    process.exit(1);
-  });
+// ==============================
+// Start Server
+// ==============================
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
