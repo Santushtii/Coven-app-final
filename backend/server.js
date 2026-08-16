@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
+const mongoose = require("mongoose");
+require("dotenv").config();
 
 const connectDB = require("./config/db");
 
@@ -51,6 +52,23 @@ app.get("/", (req, res) => {
   });
 });
 
+const app = express();
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5174",
+      "https://coven-app-final-frontend.onrender.com",
+    ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
+
+app.options("*", cors());
+
+app.use(express.json());
 
 // ==============================
 // Routes
